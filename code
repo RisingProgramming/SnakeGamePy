@@ -1,0 +1,110 @@
+import pygame
+import random
+
+from pygame.locals import *
+
+# Initialize pygame
+pygame.init()
+
+# Set the window size
+window_size = (500, 500)
+
+# Create the window
+screen = pygame.display.set_mode(window_size)
+
+# Set the title of the window
+pygame.display.set_caption("Pygame Snake")
+
+# Create the snake
+snake_block = 10
+snake_speed = 10
+snake_list = [(250, 250)]
+
+# Create the food
+foodx = 0
+foody = 0
+
+# Set the direction of the snake
+direction = "right"
+
+# Set the font for the score
+font_style = pygame.font.SysFont(None, 50)
+
+# Create the clock
+clock = pygame.time.Clock()
+
+def message(msg, color):
+    mesg = font_style.render(msg, True, color)
+    screen.blit(mesg, [(window_size[0]/2) - (mesg.get_width()/2), (window_size[1]/2) - (mesg.get_height()/2)])
+
+# Game loop
+running = True
+while running:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_LEFT:
+                direction = "left"
+            elif event.key == pygame.K_RIGHT:
+                direction = "right"
+            elif event.key == pygame.K_UP:
+                direction = "up"
+            elif event.key == pygame.K_DOWN:
+                direction = "down"
+
+    screen.fill((255, 255, 255))
+    if foodx == 0 and foody == 0:
+        foodx = round(random.randrange(0, window_size[0] - snake_block) / 10.0) * 10.0
+        foody = round(random.randrange(0, window_size[1] - snake_block) / 10.0) * 10.0
+    pygame.draw.rect(screen, (255, 0, 0), [foodx, foody, snake_block, snake_block])
+
+    for x in snake_list:
+        pygame.draw.rect(screen, (0, 0, 0), [x[0], x[1], snake_block, snake_block])
+
+    if direction == "right":
+        head = [snake_list[0][0] + snake_block, snake_list[0][1]]
+    if direction == "left":
+        head = [snake_list[0][0] - snake_block, snake_list[0][1]]
+    if direction == "up":
+        head = [snake_list[0][0], snake_list[0][1] - snake_block]
+    if direction == "down":
+        head = [snake_list[0][0], snake_list[0][1] + snake_block]
+
+    # Add the new head to the snake
+    snake_list.insert(0, head)
+
+    # check if the snake hit the food
+    if head[0] == foodx and head[1] == foody:
+        foodx = 0
+        foody = 0
+    else:
+        snake_list.pop()
+
+    # check if the snake hit the boundaries
+    if head[0] >= window_size[0] or head[0] < 0 or head[1] >= window_size[1] or head[1] < 0:
+        message("You Lost", (255, 0, 0))
+        pygame.display.update()
+        pygame.time.wait(3000)
+        running = False
+
+    # check if the snake hit itself
+    for block in snake_list[1:]:
+        if head[0] == block[0] and head[1] == block[1]:
+            message("You Lost", (255, 0, 0))
+            pygame.display.update()
+            pygame.time.wait(3000)
+            running = False
+
+        if len(snake_list) == (window_size[0]/snake_block)*(window_size[1]/snake_block):
+            message("You Won", (0, 255, 0))
+            pygame.display.update()
+            pygame.time.wait(3000)
+            running = False
+
+    # Update the screen
+    pygame.display.update()
+    clock.tick(snake_speed)
+
+# Exit pygame
+pygame.quit()
